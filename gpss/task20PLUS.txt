@@ -1,0 +1,126 @@
+AvgServer1 VARIABLE 20
+AvgServer2 VARIABLE 30
+AvgServer3 VARIABLE 26
+AvgServer4 VARIABLE 50
+AvgServer5 VARIABLE 64
+
+GENERATE (Exponential(1, 0, V$AvgServer1))    ; Attack to server 1 happened
+TRANSFER 0.5,,FailedAttack
+TRANSFER 0.6,HardAttack1,LowAttack1           ; 0.5*0.6 =0.3, 0.5*0.4 = 0.2
+
+LowAttack1	SEIZE Server1
+		ENTER Masters,1
+		ADVANCE 5,4
+		LEAVE Masters,1
+		RELEASE Server1
+		TERMINATE
+
+HardAttack1	SEIZE Server1
+		ENTER Masters,1
+		ADVANCE 12,6
+		LEAVE Masters,1
+		RELEASE Server1
+		TERMINATE
+
+
+GENERATE (Exponential(1, 0, V$AvgServer2))    ; Attack to server 2 happened
+TRANSFER 0.5,,FailedAttack
+TRANSFER 0.6,HardAttack2,LowAttack2           ; 0.5*0.6 =0.3, 0.5*0.4 = 0.2
+
+LowAttack2	SEIZE Server2
+		ENTER Masters,1
+		ADVANCE 5,4
+		LEAVE Masters,1
+		RELEASE Server2
+		TERMINATE
+
+HardAttack2	SEIZE Server2
+		ENTER Masters,1
+		ADVANCE 12,6
+		LEAVE Masters,1
+		RELEASE Server2
+		TERMINATE
+
+GENERATE (Exponential(1, 0, V$AvgServer3))    ; Attack to server 3 happened
+TRANSFER 0.5,,FailedAttack
+TRANSFER 0.6,HardAttack3,LowAttack3           ; 0.5*0.6 =0.3, 0.5*0.4 = 0.2
+
+LowAttack3	SEIZE Server3
+		ENTER Masters,1
+		ADVANCE 5,4
+		LEAVE Masters,1
+		RELEASE Server3
+		TERMINATE
+
+HardAttack3	SEIZE Server3
+		ENTER Masters,1
+		ADVANCE 12,6
+		LEAVE Masters,1
+		RELEASE Server3
+		TERMINATE
+
+GENERATE (Exponential(1, 0, V$AvgServer4))    ; Attack to server 4 happened
+TRANSFER 0.5,,FailedAttack
+TRANSFER 0.6,HardAttack4,LowAttack4           ; 0.5*0.6 =0.3, 0.5*0.4 = 0.2
+
+LowAttack4	SEIZE Server4
+		ENTER Masters,1
+		ADVANCE 5,4
+		LEAVE Masters,1
+		RELEASE Server4
+		TERMINATE
+
+HardAttack4	SEIZE Server4
+		ENTER Masters,1
+		ADVANCE 12,6
+		LEAVE Masters,1
+		RELEASE Server4
+		TERMINATE
+
+GENERATE (Exponential(1, 0, V$AvgServer5))    ; Attack to server 5 happened
+TRANSFER 0.5,,FailedAttack
+TRANSFER 0.6,HardAttack5,LowAttack5           ; 0.5*0.6 =0.3, 0.5*0.4 = 0.2
+
+LowAttack5	SEIZE Server5
+		ENTER Masters,1
+		ADVANCE 5,4
+		LEAVE Masters,1
+		RELEASE Server5
+		TERMINATE
+
+HardAttack5	SEIZE Server5
+		ENTER Masters,1
+		ADVANCE 12,6
+		LEAVE Masters,1
+		RELEASE Server5
+		TERMINATE
+
+FailedAttack	TERMINATE
+
+GENERATE 8766                                 ; 1 year == 8766 hours
+TERMINATE 1                                   ; START - 1 = 0 => stop
+
+EXPERIMENT Optimal(Masters,MastersMax,Optimum,OptimumMasters)
+WHILE (Masters<=MastersMax) DO
+BEGIN
+DoCommand("CLEAR");
+DoCommand(Catenate("Masters STORAGE ", Masters));
+DoCommand("START 1,NP");
+OutString=PolyCatenate("Masters: ", Masters, ", Util is: ", SA$Masters/Masters);
+DoCommand("SHOW OutString");
+
+IF (SA$Masters/Masters > 0.02) THEN BEGIN
+IF (SA$Masters/Masters <= Optimum) THEN BEGIN
+Optimum=SA$Masters/Masters;
+OptimumMasters=Masters;
+END;
+END;
+
+IF (Masters >= MastersMax) THEN BEGIN
+OutString=PolyCatenate("FINISHED! OptimumMasters to hire: ", OptimumMasters, ", Util for them is: ", Optimum);
+DoCommand("SHOW OutString");
+END;
+
+Masters=Masters+1;
+
+END;
